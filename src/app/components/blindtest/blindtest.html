@@ -1,0 +1,81 @@
+<div class="blindtest-container" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+  <div class="blindtest-header">
+    <h1>🎵 Blindtest</h1>
+    <p class="subtitle">Choisis un thème musical, lance la vidéo YouTube, puis enregistre le classement à la fin.</p>
+  </div>
+
+  <!-- Phase 1 : Sélection du thème -->
+  <div class="theme-selection-phase" *ngIf="phase === 'theme-selection'">
+    <h2 class="section-title">Choisir un thème</h2>
+    <div class="themes-grid">
+      <button
+        *ngFor="let theme of themes; let i = index"
+        mat-raised-button
+        [class.selected]="currentThemeIndex === i"
+        (click)="selectTheme(i)"
+        class="theme-card">
+        <span class="theme-num">{{ theme.id }}</span>
+        <span class="theme-name">{{ theme.name }}</span>
+      </button>
+    </div>
+    <div class="theme-preview" *ngIf="currentTheme">
+      <p class="current-theme-label">Thème sélectionné : <strong>{{ currentTheme.name }}</strong></p>
+      <div class="embed-wrapper">
+        <iframe
+          [src]="getEmbedUrl(currentTheme.youtubeUrl)"
+          title="{{ currentTheme.name }}"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+          class="youtube-embed">
+        </iframe>
+      </div>
+    </div>
+    <div class="phase-actions">
+      <button mat-raised-button color="primary" (click)="startGame()">
+        <mat-icon>play_arrow</mat-icon>
+        Commencer la partie
+      </button>
+    </div>
+  </div>
+
+  <!-- Phase 2 : En cours de partie – lecteur + changement de thème -->
+  <div class="playing-phase" *ngIf="phase === 'playing'">
+    <div class="theme-nav-bar">
+      <button mat-icon-button (click)="previousTheme()" class="nav-btn" aria-label="Thème précédent">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <div class="current-theme-title">
+        <span class="theme-name-playing">{{ currentTheme.name }}</span>
+        <span class="theme-indicator">{{ currentThemeIndex + 1 }} / {{ themes.length }}</span>
+      </div>
+      <button mat-icon-button (click)="nextTheme()" class="nav-btn" aria-label="Thème suivant">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+    <p class="swipe-hint">💡 Glisse à gauche/droite ou utilise les flèches du clavier pour changer de thème sans perdre les scores.</p>
+    <div class="embed-wrapper playing-embed">
+      <iframe
+        [src]="getEmbedUrl(currentTheme.youtubeUrl)"
+        [title]="currentTheme.name"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        class="youtube-embed">
+      </iframe>
+    </div>
+    <div class="playing-actions">
+      <button mat-raised-button color="primary" (click)="goToResults()">
+        <mat-icon>edit</mat-icon>
+        Enregistrer le classement
+      </button>
+    </div>
+  </div>
+
+  <div class="cancel-row">
+    <button mat-stroked-button (click)="cancel()">
+      <mat-icon>close</mat-icon>
+      Annuler
+    </button>
+  </div>
+</div>

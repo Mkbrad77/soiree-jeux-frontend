@@ -1,0 +1,80 @@
+/* src/app/components/setup/setup.component.css */
+.setup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.setup-card {
+  max-width: 800px;
+  width: 100%;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.team-config {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.team-count {
+  font-size: 24px;
+  font-weight: bold;
+  color: #667eea;
+  margin-top: 10px;
+}
+
+.input-row {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.name-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.gender-radio {
+  display: flex;
+  gap: 15px;
+}
+
+.players-list {
+  margin-top: 30px;
+}
+
+.info {
+  color: #4caf50;
+  font-weight: bold;
+}
+
+.warning {
+  color: #ff9800;
+  font-weight: bold;
+}
+
+.player-chips {
+  margin-top: 15px;
+}
+
+.start-button {
+  width: 100%;
+  height: 50px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+
+.players h4 {
+  margin: 15px 0 10px 0;
+  color: #666;
+}

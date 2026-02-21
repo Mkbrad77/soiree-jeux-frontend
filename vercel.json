@@ -1,0 +1,5 @@
+{
+  "buildCommand": "ng build --configuration production",
+  "outputDirectory": "dist/soiree-jeux-frontend/browser",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}

@@ -1,0 +1,155 @@
+<div class="speed-dating-container">
+
+  <!-- Phase 1 : Tirage (affichage du résultat du tirage) -->
+  <div class="phase-section" *ngIf="phase === 'draw'">
+    <div class="phase-header">
+      <h1>💕 Speed Dating – Tirage au sort</h1>
+      <p>L'app a tiré au sort la fille principale et les garçons. Chaque garçon performe devant une fille (jamais devant sa coéquipière).</p>
+    </div>
+    <div class="draw-results" *ngIf="mainGirl">
+      <mat-card class="draw-card main-girl">
+        <mat-card-content>
+          <h3>👩 Fille principale (devant qui la plupart des garçons font leur speech)</h3>
+          <p><strong>{{ mainGirl.name }}</strong> – {{ mainGirlTeam?.name }}</p>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="draw-card second-girl" *ngIf="secondGirl">
+        <mat-card-content>
+          <h3>👩 2e fille (devant qui le garçon de l'équipe de la fille principale performe)</h3>
+          <p><strong>{{ secondGirl.name }}</strong> – {{ secondGirlTeam?.name }}</p>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="draw-card boys">
+        <mat-card-content>
+          <h3>👨 Garçons en compétition (1 par équipe)</h3>
+          <div class="boys-list">
+            <ng-container *ngFor="let team of teams">
+              <div *ngIf="boysPerTeam[team.id!]" class="boy-item">
+                <span class="gender-icon">👨</span>
+                <strong>{{ boysPerTeam[team.id!].name }}</strong>
+                <span class="team-name">({{ team.name }})</span>
+              </div>
+            </ng-container>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="phase-actions">
+      <button mat-raised-button color="primary" (click)="goToPassages()">
+        Voir l'ordre des passages
+      </button>
+    </div>
+  </div>
+
+  <!-- Phase 2 : Ordre des passages -->
+  <div class="phase-section" *ngIf="phase === 'passages'">
+    <div class="phase-header">
+      <h1>🎤 Ordre des passages</h1>
+      <p>Chaque garçon fait son speech (1–2 min) devant la fille indiquée. La fille / le jury note ou vote. À la fin, sélectionnez les 2 finalistes.</p>
+    </div>
+    <div class="passages-list">
+      <mat-card *ngFor="let p of passageOrder; let i = index" class="passage-card">
+        <mat-card-content>
+          <span class="passage-num">{{ i + 1 }}</span>
+          <span class="gender-icon">👨</span>
+          <strong>{{ p.boy.name }}</strong>
+          <span class="team-name">({{ p.team.name }})</span>
+          <span class="performs"> performe devant </span>
+          <span class="gender-icon">👩</span>
+          <strong>{{ p.inFrontOf.name }}</strong>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="phase-actions">
+      <button mat-raised-button color="primary" (click)="goToFinalistsSelection()">
+        Sélectionner les 2 finalistes
+      </button>
+    </div>
+  </div>
+
+  <!-- Phase 2b : Sélection des 2 finalistes -->
+  <div class="phase-section" *ngIf="phase === 'finalists'">
+    <div class="phase-header">
+      <h1>🏆 Choisir les 2 finalistes</h1>
+      <p>Cliquez sur les 2 garçons qui passent en finale (ils referont un speech devant la même fille).</p>
+    </div>
+    <div class="finalists-selection">
+      <button *ngFor="let p of passageOrder"
+              mat-raised-button
+              [color]="isSelectedFinalist(p) ? 'primary' : 'basic'"
+              [class.finalist-selected]="isSelectedFinalist(p)"
+              (click)="isSelectedFinalist(p) ? unselectFinalist(p) : selectFinalist(p)"
+              class="finalist-btn">
+        <span class="finalist-check" *ngIf="isSelectedFinalist(p)">✓ </span>
+        👨 {{ p.boy.name }} ({{ p.team.name }})
+      </button>
+    </div>
+    <p class="hint" *ngIf="selectedFinalist1 && selectedFinalist2 && selectedFinalist1.team.id === selectedFinalist2.team.id">
+      ⚠️ Les 2 finalistes doivent être de 2 équipes différentes.
+    </p>
+    <div class="phase-actions">
+      <button mat-raised-button color="primary" [disabled]="!canConfirmFinalists()" (click)="confirmFinalists()">
+        Confirmer les 2 finalistes
+      </button>
+    </div>
+  </div>
+
+  <!-- Phase 3 : Finale – qui gagne ? -->
+  <div class="phase-section" *ngIf="phase === 'final' && selectedFinalist1 && selectedFinalist2">
+    <div class="phase-header">
+      <h1>💕 Finale</h1>
+      <p>Les 2 finalistes font chacun leur speech devant la même fille. Qui remporte le Speed Dating ?</p>
+    </div>
+    <div class="winner-selection">
+      <button mat-raised-button
+              [color]="winnerPassage === selectedFinalist1 ? 'primary' : 'basic'"
+              [class.winner-selected]="winnerPassage === selectedFinalist1"
+              (click)="selectWinner(selectedFinalist1)"
+              class="winner-btn">
+        <span class="winner-check" *ngIf="winnerPassage === selectedFinalist1">🏆 ✓ </span>
+        👨 {{ selectedFinalist1.boy.name }} – {{ selectedFinalist1.team.name }}
+      </button>
+      <button mat-raised-button
+              [color]="winnerPassage === selectedFinalist2 ? 'primary' : 'basic'"
+              [class.winner-selected]="winnerPassage === selectedFinalist2"
+              (click)="selectWinner(selectedFinalist2)"
+              class="winner-btn">
+        <span class="winner-check" *ngIf="winnerPassage === selectedFinalist2">🏆 ✓ </span>
+        👨 {{ selectedFinalist2.boy.name }} – {{ selectedFinalist2.team.name }}
+      </button>
+    </div>
+    <div class="phase-actions">
+      <button mat-raised-button color="accent" [disabled]="!winnerPassage" (click)="confirmWinner()">
+        Valider le gagnant
+      </button>
+    </div>
+  </div>
+
+  <!-- Classement final -->
+  <div class="phase-section" *ngIf="phase === 'ranking'">
+    <div class="phase-header">
+      <h1>📊 Classement final</h1>
+    </div>
+    <div class="ranking-list">
+      <mat-card *ngFor="let r of finalRanking" class="ranking-card" [class.rank-1]="r.position === 1">
+        <mat-card-content>
+          <span class="rank-num">{{ r.position }}</span>
+          <strong>{{ r.team.name }}</strong>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="phase-actions">
+      <button mat-raised-button color="primary" (click)="complete()">
+        <mat-icon>check</mat-icon>
+        Valider et enregistrer
+      </button>
+    </div>
+  </div>
+
+  <div class="cancel-button-container">
+    <button mat-stroked-button (click)="cancel()">
+      <mat-icon>close</mat-icon>
+      Annuler
+    </button>
+  </div>
+</div>

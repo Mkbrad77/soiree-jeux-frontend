@@ -1,0 +1,139 @@
+<div class="representant-selector-overlay">
+  <div class="representant-selector-container">
+    <mat-card class="selector-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>person</mat-icon>
+          Choix du Représentant
+        </mat-card-title>
+        <mat-card-subtitle>{{ gameName }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Choix du mode -->
+        <div class="mode-selection" *ngIf="!showResult && !isSelecting">
+          <h3>Choisissez le mode de sélection :</h3>
+          <div class="mode-buttons">
+            <button mat-raised-button 
+                    [color]="mode === 'random' ? 'primary' : ''"
+                    (click)="setMode('random')"
+                    class="mode-button">
+              <mat-icon>casino</mat-icon>
+              Tirage Aléatoire
+            </button>
+            <button mat-raised-button 
+                    [color]="mode === 'vote' ? 'primary' : ''"
+                    (click)="setMode('vote')"
+                    class="mode-button">
+              <mat-icon>how_to_vote</mat-icon>
+              Vote Équipe
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode Vote : Sélection par équipe -->
+        <div class="vote-mode" *ngIf="mode === 'vote' && !showResult && !isSelecting">
+          <div class="teams-selection">
+            <div *ngFor="let team of teams" class="team-selection-card" [style.border-color]="team.color">
+              <h4 [style.color]="team.color">{{ team.name }}</h4>
+              <mat-radio-group [(ngModel)]="selectedPlayers[team.id!]" [name]="'team-' + team.id">
+                <mat-radio-button *ngFor="let player of team.players" 
+                                  [value]="player.id"
+                                  class="player-option">
+                  {{ player.gender === 'HOMME' ? '👨' : '👩' }} {{ player.name }}
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+          </div>
+        </div>
+
+        <!-- Animation de suspense (mode aléatoire) -->
+        <div class="spinning-animation" 
+             [class.spinning]="isSelecting && animationPhase === 'spinning'"
+             *ngIf="isSelecting && animationPhase === 'spinning'">
+          <div class="spinner-container">
+            <div class="spinner" *ngFor="let team of teams">
+              <div class="spinner-wheel" [style.border-color]="team.color">
+                <div class="spinner-item" *ngFor="let player of team.players">
+                  {{ player.gender === 'HOMME' ? '👨' : '👩' }} {{ player.name }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="suspense-text">🎲 Sélection en cours...</p>
+        </div>
+
+        <!-- Révélation (mode aléatoire) -->
+        <div class="revealing-animation" *ngIf="animationPhase === 'revealing' && !showResult">
+          <div class="reveal-container">
+            <div class="reveal-item" *ngFor="let team of teams">
+              <div class="reveal-card" [style.border-color]="team.color">
+                <div class="reveal-content">
+                  <span class="team-name">{{ team.name }}</span>
+                  <span class="reveal-arrow">→</span>
+                  <span class="player-name" *ngIf="selectedRepresentants[team.id!]">
+                    {{ selectedRepresentants[team.id!]!.gender === 'HOMME' ? '👨' : '👩' }}
+                    {{ selectedRepresentants[team.id!]!.name }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Résultat final -->
+        <div class="result-display" *ngIf="showResult && animationPhase === 'revealed'">
+          <h3 class="result-title">🎯 Représentants sélectionnés :</h3>
+          <div class="results-grid">
+            <div *ngFor="let team of teams" 
+                 class="result-card"
+                 [style.border-left-color]="team.color">
+              <div class="team-header">
+                <span class="team-icon" [style.color]="team.color">🏆</span>
+                <span class="team-name-result">{{ team.name }}</span>
+              </div>
+              <div class="player-result" *ngIf="selectedRepresentants[team.id!]">
+                <span class="player-avatar">
+                  {{ selectedRepresentants[team.id!]!.gender === 'HOMME' ? '👨' : '👩' }}
+                </span>
+                <span class="player-name-result">{{ selectedRepresentants[team.id!]!.name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <div class="actions-container">
+          <button mat-stroked-button 
+                  (click)="cancel()"
+                  *ngIf="!showResult && !isSelecting">
+            <mat-icon>close</mat-icon>
+            Annuler
+          </button>
+          <button mat-raised-button 
+                  color="accent"
+                  (click)="startSelection()"
+                  *ngIf="!showResult && !isSelecting">
+            <mat-icon>{{ mode === 'random' ? 'casino' : 'check' }}</mat-icon>
+            {{ mode === 'random' ? 'Lancer le tirage' : 'Valider les votes' }}
+          </button>
+          <button mat-raised-button 
+                  color="primary"
+                  (click)="confirmSelection()"
+                  *ngIf="showResult">
+            <mat-icon>check_circle</mat-icon>
+            Confirmer
+          </button>
+          <button mat-stroked-button 
+                  (click)="reset()"
+                  *ngIf="showResult">
+            <mat-icon>refresh</mat-icon>
+            Recommencer
+          </button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
+

@@ -1,0 +1,565 @@
+.game-intro-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 1000;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.game-intro-content {
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
+  color: white;
+  animation: fadeInUp 0.6s ease-out;
+  padding-bottom: 200px; /* Espace pour les boutons sticky */
+  box-sizing: border-box;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.game-icon {
+  margin-bottom: 20px;
+}
+
+.icon-large {
+  font-size: 120px;
+  display: inline-block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.game-title {
+  font-size: 48px;
+  font-weight: bold;
+  margin: 20px 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+}
+
+.game-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: 25px;
+  margin-bottom: 30px;
+  backdrop-filter: blur(10px);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.game-type-badge mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.game-description {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 30px;
+  border-radius: 15px;
+  margin: 30px 0;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Indicateur que le jeu est en cours */
+.game-started-indicator {
+  margin: 20px 0;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.indicator-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(76, 175, 80, 0.2);
+  padding: 15px 30px;
+  border-radius: 25px;
+  border: 2px solid rgba(76, 175, 80, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.indicator-icon {
+  color: #4caf50;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  animation: pulseIcon 2s ease-in-out infinite;
+}
+
+@keyframes pulseIcon {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.indicator-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-description {
+  font-size: 18px;
+  line-height: 1.8;
+  text-align: left;
+}
+
+.game-description p {
+  margin: 0;
+}
+
+.game-description strong {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 8px;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.game-description strong:first-child {
+  margin-top: 0;
+}
+
+/* Affichage des représentants sélectionnés */
+.selected-representants {
+  margin: 30px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.representants-title {
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.representants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.representant-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-left: 4px solid;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.representant-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.representant-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.team-name-rep {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.player-info-rep {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gender-icon-rep {
+  font-size: 24px;
+}
+
+.player-name-rep {
+  font-size: 16px;
+  color: #333;
+}
+
+/* Affichage des duos sélectionnés */
+.selected-duos {
+  margin: 30px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.duos-title {
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.duos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.duo-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-left: 4px solid;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.duo-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.duo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.team-name-duo {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.duo-players {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+.duo-player-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex: 1;
+}
+
+.gender-icon-duo {
+  font-size: 32px;
+}
+
+.player-name-duo {
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+  font-weight: 500;
+}
+
+.duo-connector-small {
+  font-size: 20px;
+  font-weight: bold;
+  color: #667eea;
+}
+
+/* Timer Section */
+.timer-section {
+  margin: 40px 0;
+}
+
+.timer-controls {
+  margin-bottom: 20px;
+}
+
+.timer-button {
+  font-size: 18px;
+  padding: 15px 30px;
+}
+
+.timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.timer-circle {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.time {
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.stop-timer-button {
+  margin-top: 10px;
+}
+
+.timer-complete {
+  margin: 20px 0;
+}
+
+.complete-animation {
+  animation: bounce 0.5s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.complete-icon {
+  font-size: 60px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.complete-animation p {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 40px;
+  flex-wrap: wrap;
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(102, 126, 234, 0.95);
+  padding: 20px 30px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  width: calc(100% - 40px);
+  max-width: 600px;
+}
+
+.launch-button {
+  font-size: 20px;
+  padding: 15px 40px;
+  min-width: 200px;
+}
+
+.results-button {
+  font-size: 20px;
+  padding: 15px 40px;
+  min-width: 200px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  animation: pulseButton 2s ease-in-out infinite;
+}
+
+@keyframes pulseButton {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+  }
+}
+
+.back-button {
+  font-size: 16px;
+  padding: 15px 30px;
+}
+
+.launch-button mat-icon,
+.back-button mat-icon {
+  margin-right: 8px;
+}
+
+/* Loading state */
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  gap: 20px;
+}
+
+.loading-container p {
+  font-size: 18px;
+}
+
+/* Error state */
+.error-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  gap: 20px;
+  padding: 20px;
+}
+
+.error-message {
+  font-size: 20px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .game-title {
+    font-size: 36px;
+  }
+
+  .icon-large {
+    font-size: 80px;
+  }
+
+  .game-description {
+    padding: 20px;
+  }
+
+  .game-description p {
+    font-size: 16px;
+  }
+
+  .actions {
+    width: calc(100% - 20px);
+    max-width: 100%;
+    padding: 15px 20px;
+    bottom: 15px;
+    flex-direction: column;
+  }
+
+  .launch-button {
+    font-size: 18px;
+    padding: 12px 30px;
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .back-button {
+    width: 100%;
+  }
+
+  .timer-circle {
+    width: 150px;
+    height: 150px;
+  }
+
+  .time {
+    font-size: 28px;
+  }
+}
+
+/* Whisky Undercover – formulaire issue */
+.undercover-outcome-card {
+  max-width: 520px;
+  margin: 20px auto;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 16px;
+}
+
+.undercover-form .full-width {
+  width: 100%;
+}
+
+.undercover-form mat-form-field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.undercover-radio {
+  margin: 16px 0;
+}
+
+.undercover-radio label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.undercover-radio mat-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.undercover-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.undercover-actions .error-message {
+  color: #d32f2f;
+  margin-right: auto;
+}
+

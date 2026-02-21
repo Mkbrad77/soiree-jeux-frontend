@@ -1,0 +1,116 @@
+<div class="duo-selector-overlay">
+  <div class="duo-selector-container">
+    <mat-card class="selector-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>people</mat-icon>
+          Sélection des Duos
+        </mat-card-title>
+        <mat-card-subtitle>{{ gameName }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Animation de sélection -->
+        <div class="spinning-animation" 
+             [class.spinning]="isSelecting && animationPhase === 'spinning'"
+             *ngIf="isSelecting && animationPhase === 'spinning'">
+          <div class="spinner-container">
+            <div class="spinner" *ngFor="let team of teams">
+              <div class="spinner-wheel" [style.border-color]="team.color">
+                <div class="spinner-item" *ngFor="let player of team.players">
+                  {{ player.gender === 'HOMME' ? '👨' : '👩' }} {{ player.name }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <p class="suspense-text">🎲 Sélection des duos en cours...</p>
+        </div>
+
+        <!-- Révélation -->
+        <div class="revealing-animation" *ngIf="animationPhase === 'revealing'">
+          <div class="reveal-container">
+            <div class="reveal-item" *ngFor="let team of teams">
+              <div class="reveal-card" [style.border-color]="team.color">
+                <div class="reveal-content">
+                  <span class="team-name">{{ team.name }}</span>
+                  <span class="reveal-arrow">→</span>
+                  <span class="duo-names" *ngIf="selectedDuos[team.id!]">
+                    Duo en cours de sélection...
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Résultat final -->
+        <div class="result-display" *ngIf="animationPhase === 'revealed' && !isSelecting">
+          <h3 class="result-title">👥 Duos sélectionnés :</h3>
+          <div class="results-grid">
+            <div *ngFor="let team of teams" 
+                 class="result-card"
+                 [style.border-left-color]="team.color">
+              <div class="team-header">
+                <span class="team-icon" [style.color]="team.color">🏆</span>
+                <span class="team-name-result">{{ team.name }}</span>
+              </div>
+              <div class="duo-result" *ngIf="selectedDuos[team.id!]?.player1 && selectedDuos[team.id!]?.player2">
+                <div class="duo-player">
+                  <span class="player-avatar">
+                    {{ getGenderEmoji(selectedDuos[team.id!].player1.gender) }}
+                  </span>
+                  <span class="player-name-result">{{ selectedDuos[team.id!].player1.name }}</span>
+                </div>
+                <div class="duo-connector">+</div>
+                <div class="duo-player">
+                  <span class="player-avatar">
+                    {{ getGenderEmoji(selectedDuos[team.id!].player2.gender) }}
+                  </span>
+                  <span class="player-name-result">{{ selectedDuos[team.id!].player2.name }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message si aucun duo n'est encore sélectionné -->
+        <div class="no-selection" *ngIf="!isSelecting && animationPhase !== 'revealed'">
+          <p>Cliquez sur "Générer les duos" pour créer les paires aléatoirement.</p>
+          <p class="hint">💡 Les duos privilégient fille + garçon (90% de chance)</p>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <div class="actions-container">
+          <button mat-stroked-button 
+                  (click)="cancel()"
+                  *ngIf="!isSelecting && animationPhase !== 'revealed'">
+            <mat-icon>close</mat-icon>
+            Annuler
+          </button>
+          <button mat-raised-button 
+                  color="accent"
+                  (click)="generateDuos()"
+                  *ngIf="!isSelecting && animationPhase !== 'revealed'">
+            <mat-icon>casino</mat-icon>
+            Générer les duos
+          </button>
+          <button mat-raised-button 
+                  color="primary"
+                  (click)="confirmSelection()"
+                  *ngIf="animationPhase === 'revealed'">
+            <mat-icon>check_circle</mat-icon>
+            Confirmer
+          </button>
+          <button mat-stroked-button 
+                  (click)="generateDuos()"
+                  *ngIf="animationPhase === 'revealed'">
+            <mat-icon>refresh</mat-icon>
+            Régénérer
+          </button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
+

@@ -1,0 +1,117 @@
+<div class="duel-screen-container">
+  <div class="duel-content">
+    
+    <!-- Équipe A (Gauche) -->
+    <div class="team-side team-a" 
+         [class.animate-in]="animationPhase !== 'entering'"
+         [style.background]="teamA ? 'linear-gradient(135deg, ' + teamA.color + '20 0%, ' + teamA.color + '05 100%)' : ''">
+      <div class="team-card" *ngIf="teamA">
+        <div class="team-header">
+          <div class="team-color-bar" [style.background]="teamA.color"></div>
+          <h2 class="team-name" [style.color]="teamA.color">{{ teamA.name }}</h2>
+        </div>
+        
+        <div class="team-stats">
+          <div class="stat-item">
+            <span class="stat-label">Points</span>
+            <span class="stat-value">{{ teamA.totalPoints }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Shots</span>
+            <span class="stat-value">🍺 {{ teamA.shotsCount }}</span>
+          </div>
+        </div>
+
+        <div class="team-players">
+          <h3>Joueurs</h3>
+          <div class="players-list">
+            <div *ngFor="let player of teamA.players" class="player-item">
+              <span class="player-avatar">{{ getGenderEmoji(player.gender) }}</span>
+              <span class="player-name">{{ player.name }}</span>
+              <span class="player-shots" *ngIf="player.shotsCount && player.shotsCount > 0">
+                🍺 {{ player.shotsCount }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-badge">
+          <span class="badge-text">ÉQUIPE A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VS Section (Centre) -->
+    <div class="vs-section" 
+         [class.show]="showVS"
+         [class.animate-vs]="animationPhase === 'vs'"
+         [class.ready]="animationPhase === 'ready'">
+      <div class="vs-circle">
+        <span class="vs-text">VS</span>
+      </div>
+      <div class="vs-subtitle" *ngIf="game">
+        <span class="game-icon">{{ getGameIcon() }}</span>
+        <span class="game-name">{{ game.name }}</span>
+      </div>
+    </div>
+
+    <!-- Équipe B (Droite) -->
+    <div class="team-side team-b"
+         [class.animate-in]="animationPhase !== 'entering'"
+         [style.background]="teamB ? 'linear-gradient(135deg, ' + teamB.color + '20 0%, ' + teamB.color + '05 100%)' : ''">
+      <div class="team-card" *ngIf="teamB">
+        <div class="team-header">
+          <div class="team-color-bar" [style.background]="teamB.color"></div>
+          <h2 class="team-name" [style.color]="teamB.color">{{ teamB.name }}</h2>
+        </div>
+        
+        <div class="team-stats">
+          <div class="stat-item">
+            <span class="stat-label">Points</span>
+            <span class="stat-value">{{ teamB.totalPoints }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Shots</span>
+            <span class="stat-value">🍺 {{ teamB.shotsCount }}</span>
+          </div>
+        </div>
+
+        <div class="team-players">
+          <h3>Joueurs</h3>
+          <div class="players-list">
+            <div *ngFor="let player of teamB.players" class="player-item">
+              <span class="player-avatar">{{ getGenderEmoji(player.gender) }}</span>
+              <span class="player-name">{{ player.name }}</span>
+              <span class="player-shots" *ngIf="player.shotsCount && player.shotsCount > 0">
+                🍺 {{ player.shotsCount }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-badge">
+          <span class="badge-text">ÉQUIPE B</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Actions -->
+  <div class="duel-actions" [class.show]="animationPhase === 'ready'">
+    <button mat-raised-button 
+            color="primary"
+            (click)="startDuel()"
+            class="start-button">
+      <mat-icon>play_arrow</mat-icon>
+      Lancer le Duel
+    </button>
+    <button mat-stroked-button 
+            (click)="cancel()"
+            class="cancel-button">
+      <mat-icon>close</mat-icon>
+      Annuler
+    </button>
+  </div>
+</div>
+

@@ -1,0 +1,130 @@
+<!-- src/app/components/podium/podium.html -->
+<div class="podium-container">
+  <div class="podium-content">
+    
+    <!-- Titre principal -->
+    <div class="title-section">
+      <h1 class="main-title" *ngIf="allGamesCompleted">🎉 Fin de soirée MÉMORABLE 🎉</h1>
+      <h1 class="main-title" *ngIf="!allGamesCompleted">📊 Bilan de la Soirée</h1>
+      <p class="subtitle" *ngIf="allGamesCompleted">Félicitations à tous les participants !</p>
+      <p class="subtitle" *ngIf="!allGamesCompleted">État actuel de la compétition</p>
+    </div>
+
+    <!-- Podium -->
+    <div class="podium-section">
+      <h2 class="section-title">🏆 Podium Final</h2>
+
+      <!-- Chargement -->
+      <div class="podium-loading" *ngIf="loading">
+        <mat-spinner diameter="60"></mat-spinner>
+        <p>Chargement du classement...</p>
+      </div>
+
+      <!-- Aucune équipe -->
+      <div class="podium-empty" *ngIf="!loading && sortedTeams.length === 0">
+        <p>Aucune équipe pour le moment.</p>
+        <p class="podium-empty-hint">Démarrez la soirée depuis l'accueil (ajoutez les joueurs et créez les équipes) pour voir le classement ici.</p>
+      </div>
+      
+      <div class="podium-display" *ngIf="!loading && sortedTeams.length > 0">
+        <!-- 2ème place -->
+        <div class="podium-item second-place" *ngIf="sortedTeams.length > 1">
+          <div class="podium-stand">
+            <div class="medal">🥈</div>
+            <div class="team-name">{{ sortedTeams[1].team.name }}</div>
+            <div class="team-stats">
+              <span class="points">{{ sortedTeams[1].totalPoints }} pts</span>
+              <span class="shots">{{ sortedTeams[1].totalShots }} shots</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1ère place -->
+        <div class="podium-item first-place">
+          <div class="podium-stand winner">
+            <div class="crown">👑</div>
+            <div class="medal">🥇</div>
+            <div class="team-name">{{ sortedTeams[0].team.name }}</div>
+            <div class="team-stats">
+              <span class="points">{{ sortedTeams[0].totalPoints }} pts</span>
+              <span class="shots">{{ sortedTeams[0].totalShots }} shots</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3ème place -->
+        <div class="podium-item third-place" *ngIf="sortedTeams.length > 2">
+          <div class="podium-stand">
+            <div class="medal">🥉</div>
+            <div class="team-name">{{ sortedTeams[2].team.name }}</div>
+            <div class="team-stats">
+              <span class="points">{{ sortedTeams[2].totalPoints }} pts</span>
+              <span class="shots">{{ sortedTeams[2].totalShots }} shots</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Classement complet -->
+      <div class="full-ranking" *ngIf="!loading && sortedTeams.length > 3">
+        <h3>Classement complet</h3>
+        <div class="ranking-list">
+          <div class="ranking-item" 
+               *ngFor="let teamStat of sortedTeams.slice(3); let i = index"
+               [style.border-left-color]="teamStat.team.color">
+            <span class="rank-number">{{ teamStat.position }}.</span>
+            <span class="team-name-ranking">{{ teamStat.team.name }}</span>
+            <span class="team-points-ranking">{{ teamStat.totalPoints }} pts</span>
+            <span class="team-shots-ranking">{{ teamStat.totalShots }} shots</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Fun (masqué si pas d'équipes) -->
+    <div class="stats-section" *ngIf="!loading && sortedTeams.length > 0">
+      <h2 class="section-title">📊 Stats Fun</h2>
+      
+      <div class="stats-grid">
+        <!-- Équipe la plus bourrée -->
+        <mat-card class="stat-card drunk-card" *ngIf="mostDrunkTeam">
+          <mat-card-content>
+            <div class="stat-icon">🍺</div>
+            <h3>Équipe la plus bourrée</h3>
+            <p class="stat-team-name">{{ mostDrunkTeam.name }}</p>
+            <p class="stat-value">{{ mostDrunkTeam.shotsCount }} shots bus</p>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Meilleur comeback -->
+        <mat-card class="stat-card comeback-card" *ngIf="bestComebackTeam">
+          <mat-card-content>
+            <div class="stat-icon">📈</div>
+            <h3>Meilleur comeback</h3>
+            <p class="stat-team-name">{{ bestComebackTeam.name }}</p>
+            <p class="stat-value">Félicitations !</p>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Pire performance -->
+        <mat-card class="stat-card worst-card" *ngIf="worstPerformanceTeam">
+          <mat-card-content>
+            <div class="stat-icon">😅</div>
+            <h3>Pire performance</h3>
+            <p class="stat-team-name">{{ worstPerformanceTeam.name }}</p>
+            <p class="stat-value">{{ worstPerformanceTeam.totalPoints }} points</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Bouton retour -->
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="goToDashboard()">
+        <mat-icon>arrow_back</mat-icon>
+        Retour au dashboard
+      </button>
+    </div>
+  </div>
+</div>
+

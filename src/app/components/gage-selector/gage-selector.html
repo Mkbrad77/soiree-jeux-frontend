@@ -1,0 +1,98 @@
+<!-- src/app/components/gage-selector/gage-selector.html -->
+<div class="gage-selector-container">
+  <div class="phase-container">
+    
+    <!-- Phase: Sélection aléatoire du joueur -->
+    <div class="phase-card" *ngIf="phase === 'selecting-player' && lastTeam">
+      <mat-card>
+        <mat-card-content>
+          <div class="selection-phase">
+            <h2>🎲 Sélection aléatoire du joueur</h2>
+            <p class="team-info">Équipe : <strong>{{ lastTeam.name }}</strong></p>
+            <p class="remaining-info" *ngIf="availablePlayers.length > 0">
+              {{ availablePlayers.length }} joueur{{ availablePlayers.length > 1 ? 's' : '' }} disponible{{ availablePlayers.length > 1 ? 's' : '' }}
+            </p>
+            
+            <div class="selection-animation" *ngIf="isSelectingPlayer">
+              <div class="spinning-wheel">
+                <div class="wheel-item" *ngFor="let player of availablePlayers">
+                  {{ player.name }}
+                </div>
+              </div>
+              <p class="selecting-text">Sélection en cours...</p>
+            </div>
+            
+            <div class="selected-player-display" *ngIf="!isSelectingPlayer && selectedPlayer">
+              <div class="player-card">
+                <h3>🎯 Joueur sélectionné :</h3>
+                <p class="player-name">{{ selectedPlayer.name }}</p>
+                <p class="player-gender">{{ selectedPlayer.gender === 'HOMME' ? '👨' : '👩' }}</p>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Phase: Choix du gage -->
+    <div class="phase-card" *ngIf="phase === 'gage-choice' && selectedPlayer && lastTeam">
+      <mat-card>
+        <mat-card-content>
+          <div class="gage-choice-phase">
+            <h2>🎯 Gage pour {{ selectedPlayer.name }}</h2>
+            <p class="team-info">Équipe : <strong>{{ lastTeam.name }}</strong></p>
+            <p class="remaining-players" *ngIf="availablePlayers.length > 1">
+              {{ availablePlayers.length - 1 }} autre{{ availablePlayers.length > 2 ? 's' : '' }} joueur{{ availablePlayers.length > 2 ? 's' : '' }} disponible{{ availablePlayers.length > 2 ? 's' : '' }}
+            </p>
+            <p class="remaining-players" *ngIf="availablePlayers.length === 1">
+              Dernier joueur disponible
+            </p>
+
+            <div class="gages-list">
+              <h3>Choisis un gage :</h3>
+              <div class="gage-card" 
+                   *ngFor="let gage of gages"
+                   [class.selected]="selectedGage?.id === gage.id"
+                   (click)="selectGage(gage)">
+                <div class="gage-header">
+                  <span class="category-emoji">{{ getCategoryEmoji(gage.category) }}</span>
+                  <span class="category-name">{{ getCategoryName(gage.category) }}</span>
+                  <span class="points-badge">+{{ gage.points }} pts</span>
+                </div>
+                <p class="gage-text">{{ gage.text }}</p>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button mat-raised-button 
+                      color="primary" 
+                      (click)="acceptGage()"
+                      [disabled]="!selectedGage">
+                ✅ J'accepte et je réalise ce gage
+              </button>
+              <button mat-stroked-button 
+                      color="warn" 
+                      (click)="refuseGage()">
+                ❌ Je refuse tous les gages
+              </button>
+            </div>
+            
+            <div class="no-gage-selected" *ngIf="!selectedGage">
+              <p class="hint">👆 Clique sur un gage pour le sélectionner avant d'accepter</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+
+    <!-- Bouton Annuler (toujours visible) -->
+    <div class="cancel-button">
+      <button mat-stroked-button (click)="cancel()">
+        <mat-icon>close</mat-icon>
+        Annuler
+      </button>
+    </div>
+  </div>
+</div>
+

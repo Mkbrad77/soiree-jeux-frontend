@@ -1,0 +1,276 @@
+<!-- Sélecteur de représentant (pour jeux REPRESENTANT) -->
+<app-representant-selector
+  *ngIf="showRepresentantSelector && teams.length > 0"
+  [teams]="teams"
+  [gameName]="game?.name || ''"
+  (selected)="onRepresentantSelected($event)"
+  (allSelected)="onRepresentantAllSelected($event)"
+  (cancelled)="onRepresentantCancelled()">
+</app-representant-selector>
+
+<!-- Écran de duel (pour jeux UN_VS_UN) -->
+<app-duel-screen
+  *ngIf="showDuelScreen && teams.length >= 2"
+  [teams]="teams"
+  [game]="game"
+  (ready)="onDuelReady()"
+  (cancelled)="onDuelCancelled()">
+</app-duel-screen>
+
+<!-- Speed Dating (jeu spécial) -->
+<app-speed-dating
+  *ngIf="showSpeedDating && teams.length > 0"
+  [teams]="teams"
+  (completed)="onSpeedDatingCompleted($event)"
+  (cancelled)="onSpeedDatingCancelled()">
+</app-speed-dating>
+
+<!-- Memory Numérique (jeu spécial) -->
+<app-memory-numerique
+  *ngIf="showMemoryNumerique && teams.length > 0"
+  [teams]="teams"
+  (completed)="onMemoryNumeriqueCompleted($event)"
+  (cancelled)="onMemoryNumeriqueCancelled()">
+</app-memory-numerique>
+
+<!-- Sélecteur de duos (pour Cup Challenge) -->
+<app-duo-selector
+  *ngIf="showDuoSelector && teams.length > 0"
+  [teams]="teams"
+  [gameName]="game?.name || ''"
+  (duosSelected)="onDuosSelected($event)"
+  (cancelled)="onDuoSelectorCancelled()">
+</app-duo-selector>
+
+<!-- Sélecteur de gage (pour jeu Gage) -->
+<app-gage-selector
+  *ngIf="showGageSelector && teams.length > 0"
+  [teams]="teams"
+  (completed)="onGageCompleted($event)"
+  (cancelled)="onGageCancelled()">
+</app-gage-selector>
+
+<!-- Blindtest : sélection de thème + lecteur YouTube -->
+<ng-container *ngIf="showBlindtest">
+  <app-blindtest
+    (completed)="onBlindtestCompleted()"
+    (cancelled)="onBlindtestCancelled()">
+  </app-blindtest>
+</ng-container>
+
+<!-- Whisky Undercover : saisie de l'issue (Mister White) -->
+<mat-card *ngIf="showUndercoverOutcome && teams.length > 0" class="undercover-outcome-card">
+  <mat-card-header>
+    <mat-card-title>🕵️ Résultat Whisky Undercover (Mister White)</mat-card-title>
+    <mat-card-subtitle>Quelle équipe avait la vodka ? Mister White a-t-il été éliminé ?</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="undercover-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Équipe qui avait Mister White (la vodka)</mat-label>
+        <mat-select [(ngModel)]="undercoverMisterWhiteTeamId" name="misterWhiteTeam">
+          <mat-option [value]="null">— Choisir —</mat-option>
+          <mat-option *ngFor="let team of teams" [value]="team.id">{{ team.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="undercover-radio">
+        <label>Mister White a-t-il été éliminé (vote) ?</label>
+        <mat-radio-group [(ngModel)]="undercoverEliminated" name="eliminated">
+          <mat-radio-button [value]="false">Non, il a survécu (son équipe gagne 3 pts)</mat-radio-button>
+          <mat-radio-button [value]="true">Oui, il a été éliminé (les autres équipes gagnent 2 pts chacune)</mat-radio-button>
+        </mat-radio-group>
+      </div>
+      <mat-form-field *ngIf="undercoverEliminated" appearance="outline" class="full-width">
+        <mat-label>À quel tour a-t-il été éliminé ?</mat-label>
+        <mat-select [(ngModel)]="undercoverEliminatedInRound" name="eliminatedInRound">
+          <mat-option [value]="1">Tour 1</mat-option>
+          <mat-option [value]="2">Tour 2</mat-option>
+          <mat-option [value]="3">Tour 3</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+    <div class="undercover-actions">
+      <button mat-raised-button color="primary" [disabled]="undercoverSubmitting" (click)="onUndercoverSubmit()">
+        {{ undercoverSubmitting ? 'Enregistrement...' : 'Valider et enregistrer' }}
+      </button>
+      <button mat-stroked-button (click)="onUndercoverCancelled()">Annuler</button>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<div class="game-intro-container" *ngIf="!isLoading && game && !showRepresentantSelector && !showDuelScreen && !showSpeedDating && !showMemoryNumerique && !showDuoSelector && !showGageSelector && !showUndercoverOutcome && !showBlindtest">
+  <div class="game-intro-content">
+    
+    <!-- Icône du jeu -->
+    <div class="game-icon">
+      <span class="icon-large">{{ getGameIcon() }}</span>
+    </div>
+
+    <!-- Titre du jeu -->
+    <h1 class="game-title">{{ game.name }}</h1>
+
+    <!-- Type de jeu -->
+    <div class="game-type-badge">
+      <mat-icon>{{ getGameIcon() }}</mat-icon>
+      <span>{{ getGameTypeLabel() }}</span>
+    </div>
+
+    <!-- Description / Règles -->
+    <div class="game-description">
+      <div [innerHTML]="formatRules(game.description || '')"></div>
+    </div>
+
+    <!-- Indicateur que le jeu est en cours -->
+    <div class="game-started-indicator" *ngIf="gameStarted">
+      <div class="indicator-content">
+        <mat-icon class="indicator-icon">check_circle</mat-icon>
+        <span class="indicator-text">Jeu en cours...</span>
+      </div>
+    </div>
+
+    <!-- Affichage des duos sélectionnés (pour Cup Challenge et Balloon Pop) -->
+    <div class="selected-duos" *ngIf="gameStarted && (game.name === 'Cup Challenge' || game.name === 'Balloon Pop') && hasSelectedDuos()">
+      <h3 class="duos-title">👥 Duos sélectionnés :</h3>
+      <div class="duos-grid">
+        <mat-card *ngFor="let teamId of getTeamIdsWithDuos()" 
+                  class="duo-card"
+                  [style.border-left-color]="selectedDuos[teamId].team.color">
+          <mat-card-content>
+            <div class="duo-info">
+              <div class="team-name-duo" [style.color]="selectedDuos[teamId].team.color">
+                {{ selectedDuos[teamId].team.name }}
+              </div>
+              <div class="duo-players">
+                <div class="duo-player-item">
+                  <span class="gender-icon-duo">
+                    {{ selectedDuos[teamId].player1.gender === 'HOMME' ? '👨' : '👩' }}
+                  </span>
+                  <span class="player-name-duo">{{ selectedDuos[teamId].player1.name }}</span>
+                </div>
+                <div class="duo-connector-small">+</div>
+                <div class="duo-player-item">
+                  <span class="gender-icon-duo">
+                    {{ selectedDuos[teamId].player2.gender === 'HOMME' ? '👨' : '👩' }}
+                  </span>
+                  <span class="player-name-duo">{{ selectedDuos[teamId].player2.name }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Affichage des représentants sélectionnés (pour jeux REPRESENTANT) -->
+    <div class="selected-representants" *ngIf="gameStarted && game.type === 'REPRESENTANT' && hasSelectedRepresentants()">
+      <h3 class="representants-title">👥 Représentants sélectionnés :</h3>
+      <div class="representants-grid">
+        <mat-card *ngFor="let teamId of getTeamIdsWithRepresentants()" 
+                  class="representant-card"
+                  [style.border-left-color]="selectedRepresentants[teamId].team.color">
+          <mat-card-content>
+            <div class="representant-info">
+              <div class="team-name-rep" [style.color]="selectedRepresentants[teamId].team.color">
+                {{ selectedRepresentants[teamId].team.name }}
+              </div>
+              <div class="player-info-rep">
+                <span class="gender-icon-rep">
+                  {{ selectedRepresentants[teamId].player.gender === 'HOMME' ? '👨' : '👩' }}
+                </span>
+                <span class="player-name-rep">{{ selectedRepresentants[teamId].player.name }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Timer (si nécessaire) -->
+    <div class="timer-section" *ngIf="showTimer">
+      <div class="timer-controls" *ngIf="!timerState.isRunning">
+        <button mat-raised-button 
+                color="accent" 
+                (click)="startTimer()"
+                class="timer-button">
+          <mat-icon>timer</mat-icon>
+          Démarrer le chrono
+        </button>
+      </div>
+
+      <div class="timer-display" *ngIf="timerState.isRunning || (timerStarted && timerState.progress < 100)">
+        <div class="timer-circle">
+          <mat-spinner 
+            [diameter]="200" 
+            [strokeWidth]="10"
+            [value]="timerState.progress"
+            mode="determinate">
+          </mat-spinner>
+          <div class="timer-text">
+            <span class="time">{{ formatTime(timerState.timeRemaining) }}</span>
+          </div>
+        </div>
+        <button mat-raised-button 
+                color="warn" 
+                (click)="stopTimer()"
+                class="stop-timer-button"
+                *ngIf="timerState.isRunning">
+          <mat-icon>stop</mat-icon>
+          Arrêter
+        </button>
+      </div>
+
+      <div class="timer-complete" *ngIf="timerStarted && !timerState.isRunning && timerState.progress === 100">
+        <div class="complete-animation">
+          <span class="complete-icon">⏰</span>
+          <p>Temps écoulé !</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <!-- Bouton "Lancer le jeu" (avant le démarrage) -->
+      <button mat-raised-button 
+              color="primary"
+              (click)="launchGame()"
+              class="launch-button"
+              *ngIf="!gameStarted"
+              [disabled]="timerState.isRunning">
+        <mat-icon>play_arrow</mat-icon>
+        Lancer le jeu
+      </button>
+
+      <!-- Bouton "Enregistrer les résultats" (après le démarrage) -->
+      <button mat-raised-button 
+              color="accent"
+              (click)="goToResults()"
+              class="results-button"
+              *ngIf="gameStarted">
+        <mat-icon>edit</mat-icon>
+        Enregistrer les résultats
+      </button>
+
+      <button mat-stroked-button 
+              (click)="goBack()"
+              class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+        Retour
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Loading state -->
+<div class="loading-container" *ngIf="isLoading">
+  <mat-spinner></mat-spinner>
+  <p>Chargement du jeu...</p>
+</div>
+
+<!-- Error state -->
+<div class="error-container" *ngIf="errorMessage && !isLoading">
+  <p class="error-message">❌ {{ errorMessage }}</p>
+  <button mat-raised-button (click)="goBack()">Retour au dashboard</button>
+</div>
+

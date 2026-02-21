@@ -1,0 +1,260 @@
+<!-- src/app/components/dashboard/dashboard.component.html -->
+<div class="dashboard-container">
+  
+  <!-- Header avec classement -->
+  <div class="header">
+    <div class="header-top">
+      <div class="header-title-section">
+        <h1>🎮 Soirée Jeux - Tableau des Scores</h1>
+        <p *ngIf="teams.length > 0" class="teams-count">{{ teams.length }} équipe{{ teams.length > 1 ? 's' : '' }} en compétition</p>
+      </div>
+      <button mat-raised-button 
+              color="accent" 
+              (click)="goToPodium()"
+              class="podium-button">
+        <mat-icon>emoji_events</mat-icon>
+        Voir le Bilan / Podium
+      </button>
+    </div>
+    
+    <!-- Classement principal -->
+    <div class="leaderboard-main">
+      <h2 class="leaderboard-title">🏆 Classement</h2>
+      <div class="leaderboard-grid">
+        <div *ngFor="let team of getSortedTeams(); let i = index" 
+             class="leaderboard-item"
+             [class.rank-1]="i === 0"
+             [class.rank-2]="i === 1"
+             [class.rank-3]="i === 2"
+             [class.animate-up]="getTeamAnimationState(team.id) === 'up'"
+             [class.animate-down]="getTeamAnimationState(team.id) === 'down'"
+             [class.leader-highlight]="i === 0">
+          <div class="rank-badge">
+            <span class="rank-number">{{ i + 1 }}</span>
+            <span class="rank-medal" *ngIf="i < 3">{{ getMedalEmoji(i + 1) }}</span>
+          </div>
+          <div class="team-info" [style.border-left-color]="team.color">
+            <div class="team-name-large">
+              {{ team.name }}
+              <span class="team-badge" *ngIf="getTeamBadge(team.id)">{{ getTeamBadge(team.id) }}</span>
+            </div>
+            <div class="team-stats-inline">
+              <span class="stat-item">📊 {{ team.totalPoints }} pts</span>
+              <span class="stat-item" *ngIf="team.shotsCount > 0">🍺 {{ team.shotsCount }} shots (total)</span>
+              <!-- Shots du jeu en cours (formulaire ouvert) -->
+              <span class="stat-item shots-current" *ngIf="showResults && hasShotsForCurrentGame(team.id)">
+                ⚠️ {{ getShotsForCurrentGame(team.id) }} shot{{ getShotsForCurrentGame(team.id) > 1 ? 's' : '' }} à boire
+              </span>
+              <!-- Shots du dernier jeu complété (affichés temporairement) -->
+              <span class="stat-item shots-last-game" *ngIf="!showResults && hasLastGameShots(team.id)">
+                🍺 {{ getLastGameShots(team.id) }} shot{{ getLastGameShots(team.id) > 1 ? 's' : '' }} (dernier jeu)
+                <button mat-icon-button 
+                        class="mark-drank-button"
+                        (click)="markShotsAsDrank(team.id)"
+                        matTooltip="Marquer comme bus"
+                        aria-label="Marquer les shots comme bus">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barre de jeu en cours -->
+  <div class="current-game-bar" *ngIf="currentGame">
+    <div class="current-game-badge">
+      <div class="game-icon-small">{{ getGameIcon(currentGame.type) }}</div>
+      <div class="game-info">
+        <div class="game-name">{{ currentGame.name }}</div>
+        <div class="game-type-small">{{ getGameTypeLabel(currentGame.type) }}</div>
+      </div>
+      <div class="game-status" [class.completed]="currentGame.completed">
+        {{ currentGame.completed ? '✅ Terminé' : '⏳ En cours' }}
+      </div>
+    </div>
+    
+    <div class="game-actions">
+      <button *ngIf="!showResults && !currentGame.completed" 
+              mat-raised-button 
+              color="accent"
+              (click)="showResultsForm()"
+              class="action-button">
+        <mat-icon>edit</mat-icon>
+        Enregistrer les Résultats
+      </button>
+      <button *ngIf="showResults" 
+              mat-raised-button 
+              color="primary" 
+              [disabled]="!canSaveResults() || isLoading"
+              (click)="saveResults()"
+              class="action-button">
+        <mat-icon *ngIf="!isLoading">check</mat-icon>
+        <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
+        <span *ngIf="!isLoading">Valider</span>
+        <span *ngIf="isLoading">Enregistrement...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulaire de résultats (affiché en dessous) -->
+  <div *ngIf="showResults && currentGame" class="results-form-container">
+    <mat-card class="results-form-card">
+      <mat-card-header>
+        <mat-card-title>📝 Enregistrer les résultats</mat-card-title>
+        <mat-card-subtitle>Attribuez une position unique à chaque équipe (1 à {{ teams.length }})</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="position-inputs">
+          <div *ngFor="let team of teams" class="position-input">
+            <div class="position-header">
+              <label [style.color]="team.color">{{ team.name }}</label>
+              <span class="shots-preview" *ngIf="hasShotsForCurrentGame(team.id)">
+                🍺 {{ getShotsForCurrentGame(team.id) }} shot{{ getShotsForCurrentGame(team.id) > 1 ? 's' : '' }} à boire
+              </span>
+            </div>
+            <mat-form-field appearance="outline">
+              <mat-label>Position</mat-label>
+              <mat-select [(ngModel)]="tempPositions[team.id!]" [name]="'position-' + team.id">
+                <mat-option *ngFor="let pos of getPositionOptions()" [value]="pos">
+                  {{ getPositionLabel(pos) }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+        <p *ngIf="!canSaveResults() && showResults" class="warning-text">
+          ⚠️ Veuillez attribuer une position unique à toutes les équipes (pas de doublons)
+        </p>
+        <p *ngIf="errorMessage && showResults" class="error-message">
+          ❌ {{ errorMessage }}
+        </p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Section principale : Équipes à gauche, Liste des jeux à droite -->
+  <div class="main-content-grid">
+    <!-- Détails des équipes (à gauche) -->
+    <div class="teams-section">
+      <h2>👥 Équipes</h2>
+      <div class="teams-grid">
+        <mat-card *ngFor="let team of teams" 
+                  class="team-card"
+                  [style.border-left]="'5px solid ' + team.color">
+          <mat-card-header>
+            <mat-card-title [style.color]="team.color">
+              {{ team.name }}
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="team-stats">
+              <div class="stat">
+                <span class="label">Points</span>
+                <span class="value">{{ team.totalPoints }}</span>
+              </div>
+              <div class="stat">
+                <span class="label">Shots</span>
+                <span class="value">🍺 {{ team.shotsCount }}</span>
+              </div>
+            </div>
+                  <div class="players">
+                    <h4>Membres ({{ team.players.length }}):</h4>
+                    <mat-chip-set>
+                      <mat-chip *ngFor="let player of team.players" 
+                                 [removable]="true" 
+                                 (removed)="removePlayerFromTeam(team.id!, player.id!)"
+                                 [class.has-shots]="player.shotsCount && player.shotsCount > 0">
+                        {{ player.gender === 'HOMME' ? '👨' : '👩' }} {{ player.name }}
+                        <span *ngIf="player.shotsCount && player.shotsCount > 0" class="player-shots">
+                          🍺 {{ player.shotsCount }}
+                        </span>
+                        <button matChipRemove>
+                          <mat-icon>cancel</mat-icon>
+                        </button>
+                      </mat-chip>
+                    </mat-chip-set>
+                  </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Liste des jeux (à droite) -->
+    <div class="games-section">
+      <mat-card class="games-list">
+        <mat-card-header>
+          <mat-card-title>📋 Liste des Jeux</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-list>
+            <mat-list-item *ngFor="let game of games" 
+                           (click)="selectGame(game)"
+                           [class.completed]="game.completed"
+                           [class.current]="currentGame?.id === game.id">
+              <span matListItemTitle>
+                {{ game.completed ? '✅' : '⏳' }} {{ game.name }}
+              </span>
+              <span matListItemLine class="game-type">
+                {{ game.type }}
+              </span>
+            </mat-list-item>
+          </mat-list>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Gestion des joueurs (en bas) -->
+  <div class="player-management-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>👥 Gestion des Joueurs</mat-card-title>
+        <mat-card-subtitle>Ajouter des joueurs en retard ou déplacer des joueurs</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <button mat-raised-button 
+                color="primary" 
+                (click)="togglePlayerManagement()"
+                style="margin-bottom: 15px;">
+          {{ showPlayerManagement ? '❌ Masquer' : '➕ Ajouter un Joueur' }}
+        </button>
+
+        <div *ngIf="showPlayerManagement" class="add-player-form">
+          <div class="form-row">
+            <mat-form-field appearance="outline" style="flex: 1;">
+              <mat-label>Nom du joueur</mat-label>
+              <input matInput [(ngModel)]="newPlayerName" name="newPlayerName" placeholder="Ex: Jean">
+            </mat-form-field>
+
+            <mat-radio-group [(ngModel)]="newPlayerGender" name="newPlayerGender" style="margin: 0 15px;">
+              <mat-radio-button value="HOMME">👨 Homme</mat-radio-button>
+              <mat-radio-button value="FEMME">👩 Femme</mat-radio-button>
+            </mat-radio-group>
+
+            <mat-form-field appearance="outline" style="min-width: 200px;">
+              <mat-label>Équipe</mat-label>
+              <mat-select [(ngModel)]="selectedTeamForNewPlayer" name="selectedTeam">
+                <mat-option *ngFor="let team of teams" [value]="team.id">
+                  {{ team.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <button mat-raised-button 
+                    color="accent" 
+                    [disabled]="isLoading || !newPlayerName.trim() || !selectedTeamForNewPlayer"
+                    (click)="addPlayerToTeam()">
+              <span *ngIf="!isLoading">➕ Ajouter</span>
+              <span *ngIf="isLoading">⏳...</span>
+            </button>
+          </div>
+          <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+</div>

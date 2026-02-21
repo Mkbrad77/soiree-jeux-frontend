@@ -1,0 +1,80 @@
+<!-- src/app/components/setup/setup.component.html -->
+<div class="setup-container">
+  <mat-card class="setup-card">
+    <mat-card-header>
+      <mat-card-title>🎉 Configuration de la Soirée Jeux</mat-card-title>
+      <mat-card-subtitle>Ajoutez les participants et configurez les équipes</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Configuration du nombre d'équipes -->
+      <div class="team-config">
+        <h3>Nombre d'équipes</h3>
+        <mat-slider min="2" max="8" step="1" discrete>
+          <input matSliderThumb name="numberOfTeams" [ngModel]="numberOfTeams" (ngModelChange)="onTeamsChange($event)">
+        </mat-slider>
+        <p class="team-count">{{ numberOfTeams }} équipes</p>
+      </div>
+
+      <!-- Ajout de joueurs -->
+      <div class="player-input">
+        <h3>Ajouter un participant</h3>
+        <div class="input-row">
+          <mat-form-field appearance="outline" class="name-field">
+            <mat-label>Nom du participant</mat-label>
+            <input matInput name="playerName" [(ngModel)]="newPlayerName" (keyup.enter)="addPlayer()">
+          </mat-form-field>
+
+          <mat-radio-group name="playerGender" [(ngModel)]="newPlayerGender" class="gender-radio">
+            <mat-radio-button value="HOMME">👨 Homme</mat-radio-button>
+            <mat-radio-button value="FEMME">👩 Femme</mat-radio-button>
+          </mat-radio-group>
+
+          <button mat-raised-button color="primary" (click)="addPlayer()">
+            Ajouter
+          </button>
+        </div>
+      </div>
+
+      <!-- Liste des joueurs -->
+      <div class="players-list">
+        <h3>Participants ({{ players.length }})</h3>
+        <p *ngIf="isValid()" class="info">
+          ✅ {{ getPlayersPerTeam() }} joueurs par équipe
+        </p>
+        <p *ngIf="!isValid() && players.length > 0" class="warning">
+          ⚠️ Ajoutez au moins {{ numberOfTeams }} participants
+        </p>
+
+        <div class="player-chips">
+          <mat-chip-set>
+            <mat-chip *ngFor="let player of players; let i = index" 
+                      [removable]="true" 
+                      (removed)="removePlayer(i)">
+              {{ player.gender === 'HOMME' ? '👨' : '👩' }} {{ player.name }}
+              <button matChipRemove>
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip>
+          </mat-chip-set>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <div style="width: 100%;">
+        <button mat-raised-button 
+                color="accent" 
+                [disabled]="!isValid() || isLoading"
+                (click)="startParty()"
+                class="start-button">
+          <span *ngIf="!isLoading">🚀 Commencer la Soirée !</span>
+          <span *ngIf="isLoading">⏳ Chargement...</span>
+        </button>
+        <p *ngIf="errorMessage" style="color: red; margin-top: 10px; padding: 10px; background: #ffebee; border-radius: 4px;">
+          ⚠️ {{ errorMessage }}
+        </p>
+      </div>
+    </mat-card-actions>
+  </mat-card>
+</div>

@@ -1,0 +1,180 @@
+<div class="memory-numerique-container">
+  
+  <!-- Phase 1: Sélection des représentants -->
+  <div class="phase-container" *ngIf="phase === 'selection'">
+    <mat-card class="phase-card">
+      <mat-card-header>
+        <mat-card-title>🧠 Memory Numérique - Sélection des Représentants</mat-card-title>
+        <mat-card-subtitle>Chaque équipe doit désigner un représentant</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="teams-selection">
+          <div *ngFor="let team of teams" class="team-selection-card" [style.border-color]="team.color">
+            <h3 [style.color]="team.color">{{ team.name }}</h3>
+            <div class="selected-rep" *ngIf="teamRepresentatives[team.id!]">
+              <p>Représentant sélectionné :</p>
+              <div class="rep-info">
+                <span class="rep-avatar">{{ teamRepresentatives[team.id!]!.gender === 'HOMME' ? '👨' : '👩' }}</span>
+                <span class="rep-name">{{ teamRepresentatives[team.id!]!.name }}</span>
+              </div>
+            </div>
+            <div class="players-list">
+              <button 
+                mat-stroked-button
+                *ngFor="let player of team.players"
+                [class.selected]="teamRepresentatives[team.id!]?.id === player.id"
+                [class.not-selected]="teamRepresentatives[team.id!] && teamRepresentatives[team.id!]?.id !== player.id"
+                (click)="selectRepresentative(team, player)"
+                [disabled]="teamRepresentatives[team.id!]?.id === player.id">
+                {{ player.gender === 'HOMME' ? '👨' : '👩' }} {{ player.name }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button 
+                color="primary"
+                (click)="startTournament()"
+                [disabled]="!allRepresentativesSelected">
+          Démarrer le Tournoi
+        </button>
+        <button mat-stroked-button (click)="cancel()">Annuler</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- Phase 2: Tournoi (affichage du match en attente) -->
+  <div class="phase-container" *ngIf="phase === 'tournament'">
+    <mat-card class="phase-card">
+      <mat-card-header>
+        <mat-card-title>{{ getRoundName(currentRound) }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="match-preview" *ngIf="currentMatch">
+          <div class="match-teams">
+            <div class="team-preview" [style.border-color]="currentMatch.teamA.color">
+              <h3 [style.color]="currentMatch.teamA.color">{{ currentMatch.teamA.name }}</h3>
+              <p *ngIf="currentMatch.representativeA">
+                {{ currentMatch.representativeA.gender === 'HOMME' ? '👨' : '👩' }} 
+                {{ currentMatch.representativeA.name }}
+              </p>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div class="team-preview" 
+                 *ngIf="currentMatch.teamB"
+                 [style.border-color]="currentMatch.teamB.color">
+              <h3 [style.color]="currentMatch.teamB.color">{{ currentMatch.teamB.name }}</h3>
+              <p *ngIf="currentMatch.representativeB">
+                {{ currentMatch.representativeB.gender === 'HOMME' ? '👨' : '👩' }} 
+                {{ currentMatch.representativeB.name }}
+              </p>
+            </div>
+            <div class="bye-badge" *ngIf="currentMatch.isBye">
+              <span>BYE - Qualification automatique</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Phase 3: Jeu en cours -->
+  <div class="phase-container playing-phase" *ngIf="phase === 'playing' && currentMatch">
+    <div class="game-header">
+      <h2>{{ getRoundName(currentRound) }}</h2>
+      <div class="current-match-info">
+        <div class="team-indicator team-a-indicator" 
+             [class.active]="currentTurn === 'A'"
+             [style.border-color]="currentMatch.teamA.color">
+          <span [style.color]="currentMatch.teamA.color">{{ currentMatch.teamA.name }}</span>
+        </div>
+        <div class="vs-small">VS</div>
+        <div class="team-indicator team-b-indicator"
+             *ngIf="currentMatch.teamB"
+             [class.active]="currentTurn === 'B'"
+             [style.border-color]="currentMatch.teamB.color">
+          <span [style.color]="currentMatch.teamB.color">{{ currentMatch.teamB.name }}</span>
+        </div>
+      </div>
+      <div class="game-status">
+        <p>Prochain numéro attendu : <strong>{{ expectedNext }}</strong></p>
+        <p>Tour de : <strong>{{ currentTurn === 'A' ? currentMatch.teamA.name : currentMatch.teamB?.name }}</strong></p>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      <div 
+        *ngFor="let card of cards; let i = index"
+        class="number-card"
+        [class.revealed]="card.isRevealed"
+        [class.correct]="card.isRevealed && card.wasCorrect"
+        [class.wrong]="card.isRevealed && !card.wasCorrect"
+        [class.current-turn-a]="currentTurn === 'A' && !card.isRevealed"
+        [class.current-turn-b]="currentTurn === 'B' && !card.isRevealed"
+        (click)="revealCard(i)"
+        [style.border-color]="card.isRevealed ? (card.revealedBy === 'A' ? currentMatch.teamA.color : currentMatch.teamB?.color) : ''">
+        <div class="card-back" *ngIf="!card.isRevealed">
+          <span>?</span>
+        </div>
+        <div class="card-front" *ngIf="card.isRevealed">
+          <span class="card-number">{{ card.value }}</span>
+          <span class="card-order" *ngIf="card.revealOrder">#{{ card.revealOrder }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 4: Résultat du match -->
+  <div class="phase-container" *ngIf="phase === 'matchResult' && currentMatch && matchWinner">
+    <mat-card class="phase-card">
+      <mat-card-header>
+        <mat-card-title>🏆 Match terminé !</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="winner-announcement">
+          <h2 [style.color]="matchWinner.color">{{ matchWinner.name }}</h2>
+          <p>remporte ce match !</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Phase 5: Classement final -->
+  <div class="phase-container" *ngIf="phase === 'final'">
+    <mat-card class="phase-card">
+      <mat-card-header>
+        <mat-card-title>🏆 Classement Final</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="final-ranking">
+          <div *ngFor="let rank of finalRanking" 
+               class="ranking-item"
+               [class.winner]="rank.position === 1"
+               [style.border-left-color]="rank.team.color">
+            <div class="rank-position">
+              <span class="medal" *ngIf="rank.position <= 3">
+                {{ rank.position === 1 ? '🥇' : rank.position === 2 ? '🥈' : '🥉' }}
+              </span>
+              <span class="position-number" *ngIf="rank.position > 3">{{ rank.position }}ème</span>
+            </div>
+            <div class="rank-team">
+              <h3 [style.color]="rank.team.color">{{ rank.team.name }}</h3>
+              <p *ngIf="rank.eliminationRound !== null">
+                Éliminé en {{ getRoundName(rank.eliminationRound || 0) }}
+              </p>
+              <p *ngIf="rank.eliminationRound === null">🏆 Vainqueur</p>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="complete()">Valider les Résultats</button>
+        <button mat-stroked-button (click)="cancel()">Annuler</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+</div>
